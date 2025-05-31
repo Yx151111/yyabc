@@ -1,1 +1,578 @@
 
+<!-- chinese_history_intro/frontend/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>中国历史简介</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=ZCOOL+XiaoWei&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: 'ZCOOL XiaoWei', serif;
+            background-image: linear-gradient(to right, #f5f7fa, #c3cfe2);
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background-image: linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%);
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-title {
+            font-family: 'ZCOOL QingKe HuangYou', sans-serif;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-container {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-line {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #f5f7fa, #c3cfe2, #8BC6EC, #9599E2);
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .timeline-item {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:hover {
+            transform: translateY(-10px);
+        }
+
+        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%);
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .timeline-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .person-card {
+            perspective: 1000px;
+            height: 350px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .person-card:hover .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%);
+            color: white;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .person-image {
+            height: 200px;
+            object-fit: cover;
+            object-position: center;
+            width: 100%;
+        }
+
+        .dynasty-active {
+            background: #8BC6EC;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        #particles-js {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .scroll-btn {
+            animation: bounce 2s infinite;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0) translateX(-50%);}
+            40% {transform: translateY(-20px) translateX(-50%);}
+            60% {transform: translateY(-10px) translateX(-50%);}
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                height: 250px;
+            }
+            .timeline-container {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header flex items-center justify-center">
+        <div id="particles-js"></div>
+        <div class="header-content text-center px-4">
+            <h1 class="header-title text-4xl md:text-6xl font-bold text-white mb-4">中国历史简介</h1>
+            <p class="text-white text-lg md:text-xl opacity-90">五千年文明的辉煌历程</p>
+            <div class="mt-6">
+                <button id="timelineBtn" class="bg-white text-blue-500 hover:bg-blue-100 font-bold py-2 px-4 rounded-full transition duration-300 mr-2">
+                    <i class="fas fa-history mr-1"></i> 朝代时间轴
+                </button>
+                <button id="figuresBtn" class="bg-white text-purple-500 hover:bg-purple-100 font-bold py-2 px-4 rounded-full transition duration-300">
+                    <i class="fas fa-user-alt mr-1"></i> 历史人物
+                </button>
+            </div>
+        </div>
+        <div class="scroll-btn text-white">
+            <i class="fas fa-chevron-down fa-2x"></i>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <section id="timeline-section" class="mb-16">
+            <h2 class="text-3xl font-bold text-center mb-8">中国朝代时间轴</h2>
+            <div class="timeline-container py-12">
+                <div class="timeline-line"></div>
+                <div class="grid grid-cols-10 gap-4">
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">夏朝</p>
+                            <p class="text-xs text-gray-500">约前2070年-前1600年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">商朝</p>
+                            <p class="text-xs text-gray-500">约前1600年-前1046年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">周朝</p>
+                            <p class="text-xs text-gray-500">前1046年-前256年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">秦朝</p>
+                            <p class="text-xs text-gray-500">前221年-前207年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">汉朝</p>
+                            <p class="text-xs text-gray-500">前202年-220年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">三国</p>
+                            <p class="text-xs text-gray-500">220年-280年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">隋朝</p>
+                            <p class="text-xs text-gray-500">581年-618年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition dynasty-active">
+                            <p class="font-bold">唐朝</p>
+                            <p class="text-xs text-gray-500">618年-907年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">宋朝</p>
+                            <p class="text-xs text-gray-500">960年-1279年</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item col-span-1">
+                        <div class="timeline-dot"></div>
+                        <div class="text-center mt-4 p-2 rounded-lg hover:bg-gray-100 transition">
+                            <p class="font-bold">明清</p>
+                            <p class="text-xs text-gray-500">1368年-1912年</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h3 class="text-2xl font-bold mb-4 text-center text-blue-500">唐朝简介</h3>
+                <p class="mb-4">唐朝（618年-907年）是中国历史上的一个重要朝代，由李渊建立。唐朝国力强盛，尤其是在唐太宗李世民和唐玄宗李隆基统治时期，政治清明，经济繁荣，文化发展，被认为是中国封建社会的鼎盛时期，史称"贞观之治"和"开元盛世"。</p>
+                <p>唐朝的疆域辽阔，对外交流频繁，长安城（今西安）作为当时世界上最大的城市之一，吸引了众多外国使节和商人，促进了中外文化交流。唐朝的诗歌、绘画、雕塑等艺术形式达到了很高的成就，诞生了李白、杜甫、白居易等著名诗人。</p>
+            </div>
+        </section>
+
+        <section id="figures-section" class="mb-16">
+            <h2 class="text-3xl font-bold text-center mb-8">历史人物</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 李世民卡片 -->
+                <div class="person-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <img src="https://picsum.photos/id/1018/600/400" alt="李世民画像" class="person-image">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold mb-1">李世民</h3>
+                                <p class="text-gray-500 mb-3">唐太宗（598年-649年）</p>
+                                <div class="flex items-center text-gray-600">
+                                    <i class="fas fa-landmark mr-2"></i>
+                                    <span>唐朝</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <h3 class="text-xl font-bold mb-4">李世民生平</h3>
+                            <p class="mb-2">李世民是唐朝第二位皇帝，被称为"千古一帝"。他在位期间实行"贞观之治"，使唐朝成为当时世界上最强大的国家。</p>
+                            <p>他任用魏征等贤臣，虚心纳谏，发展经济文化，使国家走向繁荣昌盛。他的统治方式影响了后世许多朝代。</p>
+                            <div class="mt-4">
+                                <p class="italic text-xs">点击翻转查看更多信息</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 武则天卡片 -->
+                <div class="person-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <img src="https://picsum.photos/id/1019/600/400" alt="武则天画像" class="person-image">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold mb-1">武则天</h3>
+                                <p class="text-gray-500 mb-3">武周皇帝（624年-705年）</p>
+                                <div class="flex items-center text-gray-600">
+                                    <i class="fas fa-landmark mr-2"></i>
+                                    <span>唐朝/武周</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <h3 class="text-xl font-bold mb-4">武则天生平</h3>
+                            <p class="mb-2">武则天是中国历史上唯一正统的女皇帝，在位期间改唐为周，史称"武周"。她从唐高宗李治的才人一路晋升为皇后，后来自立为帝。</p>
+                            <p>她大胆起用有才能的人，重视科举考试，使国家政治、经济和文化得到发展，为唐朝的中兴奠定了基础。</p>
+                            <div class="mt-4">
+                                <p class="italic text-xs">点击翻转查看更多信息</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 李白卡片 -->
+                <div class="person-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <img src="https://picsum.photos/id/1021/600/400" alt="李白画像" class="person-image">
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold mb-1">李白</h3>
+                                <p class="text-gray-500 mb-3">诗仙（701年-762年）</p>
+                                <div class="flex items-center text-gray-600">
+                                    <i class="fas fa-landmark mr-2"></i>
+                                    <span>唐朝</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <h3 class="text-xl font-bold mb-4">李白生平</h3>
+                            <p class="mb-2">李白是唐代伟大的浪漫主义诗人，被后人称为"诗仙"。他的诗歌想象丰富，语言瑰丽，意境雄奇，气势磅礴。</p>
+                            <p>他一生写了约1000首诗，代表作有《将进酒》、《行路难》、《蜀道难》等。他与杜甫并称为"李杜"，对后世文学产生了深远影响。</p>
+                            <div class="mt-4">
+                                <p class="italic text-xs">点击翻转查看更多信息</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <button id="loadMoreBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition duration-300">
+                    <i class="fas fa-sync-alt mr-2"></i> 加载更多人物
+                </button>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-lg shadow-lg p-8 text-center">
+            <h2 class="text-3xl font-bold mb-6">探索中国历史</h2>
+            <p class="mb-6 text-lg text-gray-600">了解更多关于中国五千年文明发展的精彩故事</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <i class="fas fa-book text-3xl text-blue-500 mb-3"></i>
+                    <h3 class="text-xl font-bold mb-2">典籍文化</h3>
+                    <p class="text-gray-600">中国古代典籍和文化传承</p>
+                </div>
+                <div class="p-4 bg-green-50 rounded-lg">
+                    <i class="fas fa-university text-3xl text-green-500 mb-3"></i>
+                    <h3 class="text-xl font-bold mb-2">古代建筑</h3>
+                    <p class="text-gray-600">宫殿、寺庙与城墙的历史</p>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-lg">
+                    <i class="fas fa-chess text-3xl text-purple-500 mb-3"></i>
+                    <h3 class="text-xl font-bold mb-2">战争与和平</h3>
+                    <p class="text-gray-600">改变历史进程的重大事件</p>
+                </div>
+            </div>
+            <p class="text-gray-500 mt-6 italic">更多内容正在开发中...</p>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-xl font-bold mb-3">中国历史简介</h3>
+                    <p class="text-gray-400">探索中华五千年文明的辉煌历程</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold mb-3">相关链接</h4>
+                    <ul>
+                        <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white transition">中国历史博物馆</a></li>
+                        <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white transition">历史文献资料库</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">历史研究学会</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center">
+                <p class="text-sm text-gray-500">&copy; 2025 中国历史简介网站 - 保留所有权利</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        // 粒子效果初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": {
+                        "value": 80,
+                        "density": {
+                            "enable": true,
+                            "value_area": 800
+                        }
+                    },
+                    "color": {
+                        "value": "#ffffff"
+                    },
+                    "shape": {
+                        "type": "circle",
+                        "stroke": {
+                            "width": 0,
+                            "color": "#000000"
+                        },
+                    },
+                    "opacity": {
+                        "value": 0.5,
+                        "random": false,
+                        "anim": {
+                            "enable": false,
+                            "speed": 1,
+                            "opacity_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 3,
+                        "random": true,
+                    },
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 150,
+                        "color": "#ffffff",
+                        "opacity": 0.4,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 3,
+                        "direction": "none",
+                        "random": false,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false,
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": true,
+                            "mode": "grab"
+                        },
+                        "onclick": {
+                            "enable": true,
+                            "mode": "push"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": {
+                            "distance": 140,
+                            "line_linked": {
+                                "opacity": 1
+                            }
+                        },
+                        "bubble": {
+                            "distance": 400,
+                            "size": 40,
+                            "duration": 2,
+                            "opacity": 8,
+                            "speed": 3
+                        },
+                        "repulse": {
+                            "distance": 200,
+                            "duration": 0.4
+                        },
+                        "push": {
+                            "particles_nb": 4
+                        },
+                        "remove": {
+                            "particles_nb": 2
+                        }
+                    }
+                },
+                "retina_detect": true
+            });
+        });
+
+        // 滚动按钮
+        document.querySelector('.scroll-btn').addEventListener('click', function() {
+            window.scrollTo({
+                top: document.querySelector('#timeline-section').offsetTop - 50,
+                behavior: 'smooth'
+            });
+        });
+
+        // 时间轴和人物按钮
+        document.getElementById('timelineBtn').addEventListener('click', function() {
+            window.scrollTo({
+                top: document.querySelector('#timeline-section').offsetTop - 50,
+                behavior: 'smooth'
+            });
+        });
+
+        document.getElementById('figuresBtn').addEventListener('click', function() {
+            window.scrollTo({
+                top: document.querySelector('#figures-section').offsetTop - 50,
+                behavior: 'smooth'
+            });
+        });
+
+        // 时间轴点击效果
+        document.querySelectorAll('.timeline-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.timeline-item div:nth-child(2)').forEach(div => {
+                    div.classList.remove('dynasty-active');
+                });
+                this.querySelector('div:nth-child(2)').classList.add('dynasty-active');
+            });
+        });
+
+        // 加载更多按钮
+        document.getElementById('loadMoreBtn').addEventListener('click', function() {
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 加载中...';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-check-circle mr-2"></i> 已加载全部';
+                this.classList.remove('bg-blue-500', 'hover:bg-blue-700');
+                this.classList.add('bg-green-500', 'hover:bg-green-700');
+            }, 1500);
+        });
+
+        // 存储历史数据到localStorage
+        const dynastyData = [
+            {name: "夏朝", period: "约前2070年-前1600年", desc: "中国第一个朝代，传说由禹建立。"},
+            {name: "商朝", period: "约前1600年-前1046年", desc: "已有文字可考的中国第一个朝代，青铜器非常发达。"},
+            {name: "周朝", period: "前1046年-前256年", desc: "中国历史上最长的朝代，分为西周和东周。"},
+            {name: "秦朝", period: "前221年-前207年", desc: "中国第一个中央集权制统一帝国，结束了长期分裂状态。"},
+            {name: "汉朝", period: "前202年-220年", desc: "中国历史上强盛的朝代之一，开创了'汉'文化。"},
+            {name: "三国", period: "220年-280年", desc: "魏、蜀、吴三国鼎立的时期。"},
+            {name: "隋朝", period: "581年-618年", desc: "结束了南北朝分裂局面，为唐朝的强盛奠定基础。"},
+            {name: "唐朝", period: "618年-907年", desc: "中国历史上的鼎盛时期，出现'贞观之治'和'开元盛世'。"},
+            {name: "宋朝", period: "960年-1279年", desc: "经济文化高度发达的朝代，商品经济繁荣。"},
+            {name: "明清", period: "1368年-1912年", desc: "中国最后两个封建王朝，后期开始与西方列强接触。"}
+        ];
+
+        const figuresData = [
+            {name: "李世民", period: "598年-649年", dynasty: "唐朝", title: "唐太宗", desc: "唐朝第二位皇帝，实行'贞观之治'。"},
+            {name: "武则天", period: "624年-705年", dynasty: "唐朝/武周", title: "武周皇帝", desc: "中国历史上唯一正统的女皇帝。"},
+            {name: "李白", period: "701年-762年", dynasty: "唐朝", title: "诗仙", desc: "唐代伟大的浪漫主义诗人。"}
+        ];
+
+        // 保存数据到localStorage
+        localStorage.setItem('dynastyData', JSON.stringify(dynastyData));
+        localStorage.setItem('figuresData', JSON.stringify(figuresData));
+    </script>
+</body>
+</html>
+
